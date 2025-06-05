@@ -24,7 +24,7 @@ namespace OffscreenIndicators {
 			On.HUD.HUD.InitSinglePlayerHud += HUD_InitSinglePlayerHud_HK;
 			On.HUD.HUD.InitMultiplayerHud += HUD_InitMultiplayerHud_HK;
 
-			MachineConnector.SetRegisteredOI(OffscreenIndicatorsPlugin.GUID, Options.instance);
+			MachineConnector.SetRegisteredOI(Plugin.GUID, Options.instance);
 		}
 
 		static void RoomCamera_ChangeRoom_HK(On.RoomCamera.orig_ChangeRoom orig, RoomCamera self, Room newRoom, int cameraPosition) {

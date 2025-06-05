@@ -292,7 +292,7 @@ namespace OffscreenIndicators {
 				LizardGraphics lizardGraphics = creature.graphicsModule as LizardGraphics;
 				return lizardGraphics == null ? 1 : 1 - lizardGraphics.Camouflaged;
 				
-			} else if (ModManager.MSC && creature.Template.type == MoreSlugcatsEnums.CreatureTemplateType.StowawayBug) {
+			} else if (ModManager.MSC && creature.Template.type == DLCSharedEnums.CreatureTemplateType.StowawayBug) {
 				return Mathf.InverseLerp(-1f, 0f, creature.VisibilityBonus);
 
 			} else if (creature.Template.type == CreatureTemplate.Type.PoleMimic) {

@@ -22,7 +22,6 @@ namespace OffscreenIndicators {
 		float activeTime;
 		float warmUp, lastWarmUp;
 		float power, lastPower;
-		float transition, lastTransition;
 		bool hidden;
 
 		FSprite glow = new("Futile_White") {
@@ -409,7 +408,6 @@ namespace OffscreenIndicators {
 		public void Draw(RoomCamera camera, float timeStacker, float timeSpeed) {
 			float warmUp = Mathf.Lerp(lastWarmUp, this.warmUp, timeStacker);
 			float power = Mathf.Lerp(lastPower, this.power, timeStacker);
-			float transition = Mathf.Lerp(lastTransition, this.transition, timeStacker);
 			float compact = Mathf.Lerp(lastCompact, this.compact, timeStacker);
 			float compactSmooth = compact * compact * (3 - 2 * compact);
 			

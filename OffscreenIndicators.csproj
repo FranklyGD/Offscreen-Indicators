@@ -3,11 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>9.0</LangVersion>
+    <OutputPath>.\mod\plugins</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RootNamespace>OffscreenIndicators</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="lib\*.dll" />
+    <Reference Include="lib\*.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
-
 </Project>
