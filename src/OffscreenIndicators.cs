@@ -9,6 +9,7 @@ namespace OffscreenIndicators {
 	class OffscreenIndicators : HudPart {
 		public FContainer container;
 		Vector2 screenSize;
+		float cutsceneTransition = 0f;
 		const float INNER_MARGIN = 40;
 		const float OUTER_MARGIN = 10;
 
@@ -38,7 +39,7 @@ namespace OffscreenIndicators {
 
 				float naturalPulseRate = Time.deltaTime / 4;
 				float stepPulseRate = Vector2.Distance(creature.mainBodyChunk.lastPos, creaturePos);
-				float pulseSpeed = Mathf.Lerp(1, 5, Mathf.InverseLerp(senseRange, 0, distance));
+				float pulseSpeed = Mathf.Lerp(1, 10, Mathf.InverseLerp(senseRange, 0, distance));
 				
 				Player player = hudpart.hud.owner as Player;
 				if (player != null) {
@@ -51,7 +52,9 @@ namespace OffscreenIndicators {
 				pulseProgression -= naturalPulseRate + stepPulseRate;
 
 				if (pulseProgression < 0) {
-					hudpart.hud.fadeCircles.Add(new (hudpart.hud, creature.Template.smallCreature ? 10 : 20, pulseSpeed, 0.8f, 20, 4, new Vector2(Mathf.Clamp(creatureScreenPos.x, 0, screenSize.x), Mathf.Clamp(creatureScreenPos.y, 0, screenSize.y)), hudpart.container));
+					if (hudpart.cutsceneTransition < 1){
+						hudpart.hud.fadeCircles.Add(new (hudpart.hud, creature.Template.smallCreature ? 10 : 20, pulseSpeed, 0.8f, 20, 4, new Vector2(Mathf.Clamp(creatureScreenPos.x, 0, screenSize.x), Mathf.Clamp(creatureScreenPos.y, 0, screenSize.y)), hudpart.container));
+					}
 					pulseProgression += 100;
 				}
 			}
@@ -177,6 +180,12 @@ namespace OffscreenIndicators {
 
 		// 40 tps
 		public override void Update() {
+			var camera = ((RainWorldGame)hud.rainWorld.processManager.currentMainLoop).cameras[0];
+			var player = hud.owner as Player;
+			var cinematic = player.controller != null || camera.InCutscene;
+	
+			cutsceneTransition = Mathf.MoveTowards(cutsceneTransition, cinematic ? 1 : 0, Time.deltaTime * 2);
+			
 			if (Options.offscreenDisplayType.Value == "pulse") {
 				UpdatePulses();
 			}
@@ -200,30 +209,40 @@ namespace OffscreenIndicators {
 		}
 
 		void DrawIcons(float timeStacker) {
+			creatureSymbols.ForEach(x => x.RemoveSprites());
+			creatureSymbols.Clear();
+
+			if (cutsceneTransition == 1) {
+				return; // Don't draw during cutscenes
+			}
+
 			RoomCamera camera = ((RainWorldGame)hud.rainWorld.processManager.currentMainLoop).cameras[0];
 			Room room = camera.room;
 
 			Vector2 halfScreenSize = screenSize / 2;
 
-			creatureSymbols.ForEach(x => x.RemoveSprites());
-			creatureSymbols.Clear();
-
 			foreach (AbstractCreature abstractCreature in room.abstractRoom.creatures) {
 				Creature creature = abstractCreature?.realizedCreature;
 				if (creature == null || creature.inShortcut || creature.dead) {
-					continue; // Disclude if creature is not physically existing
+					continue; // Exclude if creature is not physically existing
 				}
 
 				Vector2 creaturePosition = Vector2.Lerp(creature.mainBodyChunk.lastPos, creature.mainBodyChunk.pos, timeStacker);
 				Vector2 creatureScreenPosition = creaturePosition - camera.pos;
 				Vector2 creatureRelativePosition = creatureScreenPosition - halfScreenSize;
 
-				Vector2 distance = new (
+				Vector2 sideOfScreen = new (
+					Mathf.Sign(creatureRelativePosition.x),
+					Mathf.Sign(creatureRelativePosition.y)
+				);
+
+				Vector2 signedDistanceFromEdge = new (
 					Mathf.Abs(creatureRelativePosition.x) - halfScreenSize.x,
 					Mathf.Abs(creatureRelativePosition.y) - halfScreenSize.y
-				);
-				if (distance.x < 0 && distance.y < 0 || distance.x > screenSize.x || distance.y > screenSize.y) {
-					continue; // Disclude if creature is in-screen
+				); // Signed distance from the edge of the screen, negative means in-screen
+				
+				if (signedDistanceFromEdge.x < 0 && signedDistanceFromEdge.y < 0) {
+					continue; // Exclude if creature is in-screen
 				}
 
 				var creatureSymbolData = CreatureSymbol.SymbolDataFromCreature(abstractCreature);
@@ -237,12 +256,12 @@ namespace OffscreenIndicators {
 
 				float senseRange = screenSize.x; // Max sense range
 				// Reduce the range based on certain factors
-				senseRange *= (1 - 0.8f * room.Darkness(creaturePosition));
-				senseRange *= (1 - 0.4f * creature.Submersion);
+				senseRange *= 1 - 0.8f * room.Darkness(creaturePosition);
+				senseRange *= 1 - 0.4f * creature.Submersion;
 
 				Vector2 margin = new (
-					Mathf.Lerp(INNER_MARGIN, OUTER_MARGIN, distance.x / screenSize.x),
-					Mathf.Lerp(INNER_MARGIN, OUTER_MARGIN, distance.y / screenSize.x)
+					Mathf.Lerp(INNER_MARGIN, OUTER_MARGIN, signedDistanceFromEdge.x / screenSize.x),
+					Mathf.Lerp(INNER_MARGIN, OUTER_MARGIN, signedDistanceFromEdge.y / screenSize.x)
 				);
 
 				Vector2 pointOnMargin = new(
@@ -250,7 +269,7 @@ namespace OffscreenIndicators {
 					Mathf.Clamp(creatureScreenPosition.y, margin.y, screenSize.y - margin.y)
 				);
 				
-				float dist = Mathf.Max(distance.x, distance.y);
+				float dist = Mathf.Max(signedDistanceFromEdge.x, signedDistanceFromEdge.y);
 				float spriteAlpha = Mathf.InverseLerp(senseRange, 50f, dist);
 				
 				Player player = hud.owner as Player;
@@ -274,7 +293,7 @@ namespace OffscreenIndicators {
 				creatureSymbol.shadowSprite1.alpha = spriteAlpha;
 				creatureSymbol.shadowSprite2.alpha = spriteAlpha;
 
-				creatureSymbol.Draw(timeStacker, pointOnMargin);
+				creatureSymbol.Draw(timeStacker, pointOnMargin + sideOfScreen * cutsceneTransition * INNER_MARGIN);
 			}
 		}
 

@@ -11,7 +11,7 @@ using BepInEx;
 namespace OffscreenIndicators {
 	[BepInPlugin(GUID, MOD_NAME, VERSION)]
 	public class Plugin : BaseUnityPlugin {
-		public const string VERSION = "1.0.2";
+		public const string VERSION = "1.0.3";
 		public const string MOD_NAME = "Offscreen Indicators";
 		public const string MOD_ID = "offscreenindicators";
 		public const string AUTHOR = "franklygd";

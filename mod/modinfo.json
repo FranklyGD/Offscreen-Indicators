@@ -1,8 +1,8 @@
 {
 	"id": "franklygd.offscreenindicators",
 	"name": "Offscreen Indicators",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"authors": "FranklyGD",
-	"description": "Helps you gauge where and how far offscreen creatures are from your current view. Adds other tools that help show what is on the other side.",
+	"description": "Helps you gauge where and how far offscreen creatures are from your current view. Adds other tools that help show what is on the other side.\n\nThumbnail art by IADhunter",
 	"tags" : ["Accessibility"]
 }
