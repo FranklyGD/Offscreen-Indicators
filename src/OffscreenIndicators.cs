@@ -182,7 +182,7 @@ namespace OffscreenIndicators {
 		public override void Update() {
 			var camera = ((RainWorldGame)hud.rainWorld.processManager.currentMainLoop).cameras[0];
 			var player = hud.owner as Player;
-			var cinematic = player.controller != null || camera.InCutscene;
+			var cinematic = player?.controller != null || camera.InCutscene;
 	
 			cutsceneTransition = Mathf.MoveTowards(cutsceneTransition, cinematic ? 1 : 0, Time.deltaTime * 2);
 			
